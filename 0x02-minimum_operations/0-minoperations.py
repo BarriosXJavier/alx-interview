@@ -6,6 +6,7 @@
     given a number n
 """
 
+
 def minOperations(n: int) -> int:
     """
         the method that calculates the fewest number of operations
