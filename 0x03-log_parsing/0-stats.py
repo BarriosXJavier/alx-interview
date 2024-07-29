@@ -1,49 +1,54 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+
 import sys
-import signal
-import re
-
-"""
-Reads standard input line by line and computes metrics.
-"""
-
-def print_stats(total_size, status_codes):
-    """Print statistics."""
-    print(f"File size: {total_size}")
-    for code, count in sorted(status_codes.items()):
-        if count > 0:
-            print(f"{code}: {count}")
 
 
-def main():
-    total_size = 0
-    status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
-    line_count = 0
+def print_msg(dict_sc, total_file_size):
+    """
+    Method to print
+    Args:
+        dict_sc: dict of status codes
+        total_file_size: total of the file
+    Returns:
+        Nothing
+    """
 
-    pattern = re.compile(r'^(\S+) - \[(.+)\] "GET /projects/260 HTTP/1\.1" (\d+) (\d+)$')
+    print("File size: {}".format(total_file_size))
+    for key, val in sorted(dict_sc.items()):
+        if val != 0:
+            print("{}: {}".format(key, val))
 
-    def signal_handler(sig, frame):
-        """Handle keyboard interrupt."""
-        print_stats(total_size, status_codes)
-        sys.exit(0)
 
-    signal.signal(signal.SIGINT, signal_handler)
+total_file_size = 0
+code = 0
+counter = 0
+dict_sc = {"200": 0,
+           "301": 0,
+           "400": 0,
+           "401": 0,
+           "403": 0,
+           "404": 0,
+           "405": 0,
+           "500": 0}
 
+try:
     for line in sys.stdin:
-        match = pattern.match(line.strip())
-        if match:
-            status_code = int(match.group(3))
-            file_size = int(match.group(4))
+        parsed_line = line.split()  # ✄ trimming
+        parsed_line = parsed_line[::-1]  # inverting
 
-            total_size += file_size
-            status_codes[status_code] = status_codes.get(status_code, 0) + 1
+        if len(parsed_line) > 2:
+            counter += 1
 
-            line_count += 1
-            if line_count % 10 == 0:
-                print_stats(total_size, status_codes)
+            if counter <= 10:
+                total_file_size += int(parsed_line[0])  # file size
+                code = parsed_line[1]  # status code
 
-    print_stats(total_size, status_codes)
+                if (code in dict_sc.keys()):
+                    dict_sc[code] += 1
 
+            if (counter == 10):
+                print_msg(dict_sc, total_file_size)
+                counter = 0
 
-if __name__ == "__main__":
-    main()
+finally:
+    print_msg(dict_sc, total_file_size)
