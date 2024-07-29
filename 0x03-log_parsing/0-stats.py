@@ -1,40 +1,55 @@
 #!/usr/bin/python3
-import sys
-import re
+"""
+Reads standard input line by line and computes metrics
+"""
 
 
-def print_data(total_file_size, status_code_data):
-    """Prints total size and status code count"""
-    print("File size: {}".format(total_file_size))
-    for k, v in sorted(status_code_data.items()):
-        if v != 0:
-            print("{}: {}".format(k, v))
+def parseLogs():
+    """
+    Reads logs from standard input and generates reports
+    Reports:
+        * Prints log size after reading every 10 lines & at KeyboardInterrupt
+    Raises:
+        KeyboardInterrupt (Exception): handles this exception and raises it
+    """
+    stdin = __import__('sys').stdin
+    lineNumber = 0
+    fileSize = 0
+    statusCodes = {}
+    codes = ('200', '301', '400', '401', '403', '404', '405', '500')
+    try:
+        for line in stdin:
+            lineNumber += 1
+            line = line.split()
+            try:
+                fileSize += int(line[-1])
+                if line[-2] in codes:
+                    try:
+                        statusCodes[line[-2]] += 1
+                    except KeyError:
+                        statusCodes[line[-2]] = 1
+            except (IndexError, ValueError):
+                pass
+            if lineNumber == 10:
+                report(fileSize, statusCodes)
+                lineNumber = 0
+        report(fileSize, statusCodes)
+    except KeyboardInterrupt as e:
+        report(fileSize, statusCodes)
+        raise
 
 
-status_codes = ["200", "301", "400", "401", "403", "404", "405", "500"]
-status_code_data = {code: 0 for code in status_codes}
-total_file_size = 0
-count = 0
+def report(fileSize, statusCodes):
+    """
+    Prints generated report to standard output
+    Args:
+        fileSize (int): total log size after every 10 successfully read line
+        statusCodes (dict): dictionary of status codes and counts
+    """
+    print("File size: {}".format(fileSize))
+    for key, value in sorted(statusCodes.items()):
+        print("{}: {}".format(key, value))
 
-log_pattern = re.compile(
-    r'\S+ - \[\S+ \S+\] "GET /projects/260 HTTP/1.1" (\d{3}) (\d+)'
-)
 
-try:
-    for line in sys.stdin:
-        match = log_pattern.match(line)
-        if match:
-            code, size = match.groups()
-            total_file_size += int(size)
-            if code in status_code_data:
-                status_code_data[code] += 1
-            count += 1
-            if count % 10 == 0:
-                print_data(total_file_size, status_code_data)
-except KeyboardInterrupt:
-    print_data(total_file_size, status_code_data)
-    raise
-except Exception as e:
-    pass
-finally:
-    print_data(total_file_size, status_code_data)
+if __name__ == '__main__':
+    parseLogs()
