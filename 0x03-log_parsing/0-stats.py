@@ -3,18 +3,16 @@ import sys
 import signal
 import re
 
-
 """
-    Reads standard input line by line and computes metrics
+Reads standard input line by line and computes metrics.
 """
-
 
 def print_stats(total_size, status_codes):
-    """Print the statistics."""
+    """Print statistics."""
     print(f"File size: {total_size}")
-    for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print(f"{code}: {status_codes[code]}")
+    for code, count in sorted(status_codes.items()):
+        if count > 0:
+            print(f"{code}: {count}")
 
 
 def main():
@@ -22,7 +20,7 @@ def main():
     status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
     line_count = 0
 
-    pattern = r'^(\S+) - \[(.+)\] "GET /projects/260 HTTP/1\.1" (\d+) (\d+)$'
+    pattern = re.compile(r'^(\S+) - \[(.+)\] "GET /projects/260 HTTP/1\.1" (\d+) (\d+)$')
 
     def signal_handler(sig, frame):
         """Handle keyboard interrupt."""
@@ -32,14 +30,13 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
 
     for line in sys.stdin:
-        match = re.match(pattern, line.strip())
+        match = pattern.match(line.strip())
         if match:
             status_code = int(match.group(3))
             file_size = int(match.group(4))
 
             total_size += file_size
-            if status_code in status_codes:
-                status_codes[status_code] += 1
+            status_codes[status_code] = status_codes.get(status_code, 0) + 1
 
             line_count += 1
             if line_count % 10 == 0:
