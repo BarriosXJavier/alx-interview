@@ -1,55 +1,52 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+import sys
+import signal
+import re
+
+
 """
-Reads standard input line by line and computes metrics
+    Reads standard input line by line and computes metrics
 """
 
 
-def parseLogs():
-    """
-    Reads logs from standard input and generates reports
-    Reports:
-        * Prints log size after reading every 10 lines & at KeyboardInterrupt
-    Raises:
-        KeyboardInterrupt (Exception): handles this exception and raises it
-    """
-    stdin = __import__('sys').stdin
-    lineNumber = 0
-    fileSize = 0
-    statusCodes = {}
-    codes = ('200', '301', '400', '401', '403', '404', '405', '500')
-    try:
-        for line in stdin:
-            lineNumber += 1
-            line = line.split()
-            try:
-                fileSize += int(line[-1])
-                if line[-2] in codes:
-                    try:
-                        statusCodes[line[-2]] += 1
-                    except KeyError:
-                        statusCodes[line[-2]] = 1
-            except (IndexError, ValueError):
-                pass
-            if lineNumber == 10:
-                report(fileSize, statusCodes)
-                lineNumber = 0
-        report(fileSize, statusCodes)
-    except KeyboardInterrupt as e:
-        report(fileSize, statusCodes)
-        raise
+def print_stats(total_size, status_codes):
+    """Print the statistics."""
+    print(f"File size: {total_size}")
+    for code in sorted(status_codes.keys()):
+        if status_codes[code] > 0:
+            print(f"{code}: {status_codes[code]}")
 
 
-def report(fileSize, statusCodes):
-    """
-    Prints generated report to standard output
-    Args:
-        fileSize (int): total log size after every 10 successfully read line
-        statusCodes (dict): dictionary of status codes and counts
-    """
-    print("File size: {}".format(fileSize))
-    for key, value in sorted(statusCodes.items()):
-        print("{}: {}".format(key, value))
+def main():
+    total_size = 0
+    status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
+    line_count = 0
+
+    pattern = r'^(\S+) - \[(.+)\] "GET /projects/260 HTTP/1\.1" (\d+) (\d+)$'
+
+    def signal_handler(sig, frame):
+        """Handle keyboard interrupt."""
+        print_stats(total_size, status_codes)
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    for line in sys.stdin:
+        match = re.match(pattern, line.strip())
+        if match:
+            status_code = int(match.group(3))
+            file_size = int(match.group(4))
+
+            total_size += file_size
+            if status_code in status_codes:
+                status_codes[status_code] += 1
+
+            line_count += 1
+            if line_count % 10 == 0:
+                print_stats(total_size, status_codes)
+
+    print_stats(total_size, status_codes)
 
 
-if __name__ == '__main__':
-    parseLogs()
+if __name__ == "__main__":
+    main()
