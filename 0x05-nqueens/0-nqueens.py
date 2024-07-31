@@ -5,7 +5,7 @@ import sys
 
 def is_safe(board, row, col, n):
     """Checks if it is safe to place a queen at board[row][col]"""
-    # Check for queens in the same column
+    # Check for queens in same column
     for i in range(row):
         if board[i][col] == 1:
             return False
