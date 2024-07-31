@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" Solving the nqueens challenge """
+""" Script to solve the n-queen challenge"""
 import sys
 
 
@@ -36,15 +36,22 @@ def solve_n_queens(board, col, n, solutions):
             board[i][col] = 0
 
 
+def format_solution(board):
+    """Formats the solution to the required output"""
+    solution = []
+    n = len(board)
+    for i in range(n):
+        for j in range(n):
+            if board[i][j] == 1:
+                solution.append([i, j])
+    return solution
+
+
 def print_solutions(solutions):
     """Prints all solutions to the N-Queens problem"""
     for solution in solutions:
-        for i in range(len(solution)):
-            row = []
-            for j in range(len(solution)):
-                if solution[i][j] == 1:
-                    row.append([i, j])
-            print(row)
+        formatted_solution = format_solution(solution)
+        print(formatted_solution)
 
 
 def main():
