@@ -1,87 +1,77 @@
 #!/usr/bin/python3
-"""N queens solution finder module."""
+"""
+A program that solves the N-queens challenge.
+"""
 import sys
+from typing import List
 
-solutions = []
-"""The list of possible solutions to the N queens problem."""
-board_size = 0
-"""The size of the chessboard."""
-positions = None
-"""The list of possible positions on the chessboard."""
 
-def get_input():
-    """Retrieves and validates this program's argument.
-
-    Returns:
-        int: The size of the chessboard.
+def is_safe(board: List[int], row: int, col: int) -> bool:
     """
-    global board_size
+    Check if it's safe to place a queen at position (row, col) on board.
+    """
+    for r in range(row):
+        if board[r] == col or \
+                board[r] - r == col - row or \
+                board[r] + r == col + row:
+            return False
+    return True
+
+
+def solve_nqueens(
+        board: List[int], row: int, n: int, solutions: List[List[int]]
+        ):
+    """
+    Recursively find a safe place for a queen in the current row.
+    """
+    if row == n:
+        solutions.append(board[:])
+        return
+
+    for col in range(n):
+        if is_safe(board, row, col):
+            board[row] = col
+            solve_nqueens(board, row + 1, n, solutions)
+            board[row] = -1
+
+
+def nqueens(n: int) -> List[List[int]]:
+    """
+    Solve the N-queens problem for a given board size.
+    """
+    board = [-1] * n
+    solutions = []
+    solve_nqueens(board, 0, n, solutions)
+    return solutions
+
+
+def print_solutions(solutions: List[List[int]]):
+    """
+    Print all solutions to the N-queens problem.
+    """
+    for solution in solutions:
+        result = [[col, row] for row, col in enumerate(solution)]
+        print(result)
+
+
+def main():
     if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
+
     try:
-        board_size = int(sys.argv[1])
+        n = int(sys.argv[1])
     except ValueError:
         print("N must be a number")
         sys.exit(1)
-    if board_size < 4:
+
+    if n < 4:
         print("N must be at least 4")
         sys.exit(1)
-    return board_size
 
-def is_attacking(pos1, pos2):
-    """Checks if the positions of two queens are in an attacking mode.
+    solutions = nqueens(n)
+    print_solutions(solutions)
 
-    Args:
-        pos1 (list or tuple): The first queen's position.
-        pos2 (list or tuple): The second queen's position.
 
-    Returns:
-        bool: True if the queens are in an attacking position else False.
-    """
-    return pos1[0] == pos2[0] or pos1[1] == pos2[1] or abs(pos1[0] - pos2[0]) == abs(pos1[1] - pos2[1])
-
-def solution_exists(candidate_solution):
-    """Checks if a candidate solution exists in the list of solutions.
-
-    Args:
-        candidate_solution (list of lists of integers): A candidate solution.
-
-    Returns:
-        bool: True if it exists, otherwise False.
-    """
-    global solutions
-    for existing_solution in solutions:
-        if all(any(c_pos[0] == e_pos[0] and c_pos[1] == e_pos[1] for e_pos in existing_solution) for c_pos in candidate_solution):
-            return True
-    return False
-
-def find_solutions(row, current_solution):
-    """Builds a solution for the n queens problem.
-
-    Args:
-        row (int): The current row in the chessboard.
-        current_solution (list of lists of integers): The current valid positions.
-    """
-    global solutions, board_size
-    if row == board_size:
-        if not solution_exists(current_solution):
-            solutions.append(current_solution.copy())
-        return
-    for col in range(board_size):
-        candidate_position = [row, col]
-        if not any(is_attacking(candidate_position, existing_position) for existing_position in current_solution):
-            current_solution.append(candidate_position)
-            find_solutions(row + 1, current_solution)
-            current_solution.pop()
-
-def solve_nqueens():
-    """Gets the solutions for the given chessboard size."""
-    global positions, board_size
-    positions = [[i, j] for i in range(board_size) for j in range(board_size)]
-    find_solutions(0, [])
-
-board_size = get_input()
-solve_nqueens()
-for solution in solutions:
-    print(solution)
+if __name__ == "__main__":
+    main()
