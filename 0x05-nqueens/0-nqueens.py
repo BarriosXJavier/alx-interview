@@ -1,60 +1,54 @@
-#!/usr/bin/python3
-"""
-A program that solves the N-queens challenge.
-"""
+#!/usr/bin/env python3
+""" Program to solve the Nqueens challenge """
 import sys
-from typing import List
 
 
-def is_safe(board: List[int], row: int, col: int) -> bool:
-    """
-    Check if it's safe to place a queen at position (row, col) on board.
-    """
-    for r in range(row):
-        if board[r] == col or \
-                board[r] - r == col - row or \
-                board[r] + r == col + row:
+def is_safe(board, row, col, n):
+    """Check if it's safe to place a queen at board[row][col]."""
+    # Check this row on left side
+    for i in range(col):
+        if board[row][i] == 1:
             return False
+
+    # Check upper diagonal on left side
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
+    # Check lower diagonal on left side
+    for i, j in zip(range(row, n, 1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
     return True
 
 
-def solve_nqueens(
-        board: List[int], row: int, n: int, solutions: List[List[int]]
-        ):
-    """
-    Recursively find a safe place for a queen in the current row.
-    """
-    if row == n:
-        solutions.append(board[:])
+def solve_nqueens(board, col, n, solutions):
+    """Use backtracking to solve the N-Queens problem."""
+    if col >= n:
+        solution = []
+        for i in range(n):
+            for j in range(n):
+                if board[i][j] == 1:
+                    solution.append([i, j])
+        solutions.append(solution)
         return
 
-    for col in range(n):
-        if is_safe(board, row, col):
-            board[row] = col
-            solve_nqueens(board, row + 1, n, solutions)
-            board[row] = -1
+    for i in range(n):
+        if is_safe(board, i, col, n):
+            board[i][col] = 1
+            solve_nqueens(board, col + 1, n, solutions)
+            board[i][col] = 0
 
 
-def nqueens(n: int) -> List[List[int]]:
-    """
-    Solve the N-queens problem for a given board size.
-    """
-    board = [-1] * n
-    solutions = []
-    solve_nqueens(board, 0, n, solutions)
-    return solutions
-
-
-def print_solutions(solutions: List[List[int]]):
-    """
-    Print all solutions to the N-queens problem.
-    """
+def print_solutions(solutions):
+    """Print all the solutions."""
     for solution in solutions:
-        result = [[col, row] for row, col in enumerate(solution)]
-        print(result)
+        print(solution)
 
 
 def main():
+    """Main function to parse arguments and solve the N-Queens problem."""
     if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
@@ -69,7 +63,9 @@ def main():
         print("N must be at least 4")
         sys.exit(1)
 
-    solutions = nqueens(n)
+    board = [[0 for _ in range(n)] for _ in range(n)]
+    solutions = []
+    solve_nqueens(board, 0, n, solutions)
     print_solutions(solutions)
 
 
