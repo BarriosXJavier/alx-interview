@@ -7,7 +7,8 @@ import sys
 
 if __name__ == '__main__':
 
-    filesize, count = 0, 0
+    total_file_size = 0
+    count = 0
     codes = ["200", "301", "400", "401", "403", "404", "405", "500"]
     stats = {k: 0 for k in codes}
 
@@ -29,21 +30,40 @@ if __name__ == '__main__':
 
     try:
         for line in sys.stdin:
-            count += 1
             data = line.split()
+
+            # Ensure line matches the expected format
+            if (len(data) != 7 or
+                data[3][0] != '[' or
+                data[4][-1] != ']' or
+                data[5] != '"GET' or
+                    data[6] != '/projects/260'):
+                continue
+
+            count += 1
+
+            # Update status code count if it's valid
             try:
                 status_code = data[-2]
                 if status_code in stats:
                     stats[status_code] += 1
-            except BaseException:
-                pass
+            except IndexError:
+                continue
+
+            # Update file size
             try:
-                filesize += int(data[-1])
-            except BaseException:
-                pass
+                file_size = int(data[-1])
+                total_file_size += file_size
+            except (IndexError, ValueError):
+                continue
+
+            # Print stats every 10 lines
             if count % 10 == 0:
-                print_stats(stats, filesize)
-        print_stats(stats, filesize)
+                print_stats(stats, total_file_size)
+
+        # Print final stats
+        print_stats(stats, total_file_size)
+
     except KeyboardInterrupt:
-        print_stats(stats, filesize)
+        print_stats(stats, total_file_size)
         raise
