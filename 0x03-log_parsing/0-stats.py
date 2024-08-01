@@ -33,7 +33,7 @@ if __name__ == '__main__':
             data = line.split()
 
             # Ensure line matches the expected format
-            if (len(data) != 7 or
+            if (len(data) < 7 or
                 data[3][0] != '[' or
                 data[4][-1] != ']' or
                 data[5] != '"GET' or
