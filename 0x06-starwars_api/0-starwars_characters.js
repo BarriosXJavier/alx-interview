@@ -1,41 +1,36 @@
 #!/usr/bin/node
+const argv = process.argv;
+const urlFilm = 'https://swapi-api.hbtn.io/api/films/';
+const urlMovie = `${urlFilm}${argv[2]}/`;
 
-import request from 'request';
+const request = require('request');
 
-// Check if a movie ID is provided as a command-line argument
-if (process.argv.length < 3) {
-    console.error('Usage: ./<script> <movie_id>');
-    process.exit(1);
-}
+request(urlMovie, function (error, response, body) {
+    if (error == null) {
+        const fbody = JSON.parse(body);
+        const characters = fbody.characters;
 
-// get movie id from the command-line
-const movieId = process.argv[2];
+        if (characters && characters.length > 0) {
+            const limit = characters.length;
+            CharRequest(0, characters[0], characters, limit);
+        }
+    } else {
+        console.log(error);
+    }
+});
 
-// Define the API endpoint for the specified movie
-const url = `https://swapi-api.alx-tools.com/api/films/${movieId}/`;
-
-// Send a GET request to the Star Wars API
-request(url, (error, response, body) => {
-    if (error) {
-        console.error(error);
+function CharRequest(idx, url, characters, limit) {
+    if (idx === limit) {
         return;
     }
-
-    // Parse the response body as JSON
-    const data = JSON.parse(body);
-
-    // Iterate over each character URL in the movie's character list
-    data.characters.forEach((characterUrl) => {
-        // Send a GET request to each character URL
-        request(characterUrl, (error, response, body) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
-
-            // Parse the character data and print the character name
-            const character = JSON.parse(body);
-            console.log(character.name);
-        });
+    request(url, function (error, response, body) {
+        if (!error) {
+            const rbody = JSON.parse(body);
+            console.log(rbody.name);
+            idx++;
+            CharRequest(idx, characters[idx], characters, limit);
+        } else {
+            console.error('error:', error);
+        }
     });
-});
+}
