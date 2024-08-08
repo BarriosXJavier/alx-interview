@@ -1,48 +1,41 @@
 #!/usr/bin/node
 
-'use strict'
+import request from 'request';
 
-import { get } from 'https'
-
+// Check if a movie ID is provided as a command-line argument
 if (process.argv.length < 3) {
-    console.error('Usage: node script.js <movie_id>')
-    process.exit(1)
+    console.error('Usage: ./<script> <movie_id>');
+    process.exit(1);
 }
 
-const movieId = parseInt(process.argv[2], 10)
+// get movie id from the command-line
+const movieId = process.argv[2];
 
-const options = {
-    hostname: 'swapi-api.alx-tools.com',
-    path: `/api/films/${movieId}/`,
-    method: 'GET'
-}
+// Define the API endpoint for the specified movie
+const url = `https://swapi-api.alx-tools.com/api/films/${movieId}/`;
 
-get(options, (res) => {
-    let data = ''
+// Send a GET request to the Star Wars API
+request(url, (error, response, body) => {
+    if (error) {
+        console.error(error);
+        return;
+    }
 
-    res.on('data', (chunk) => {
-        data += chunk
-    })
+    // Parse the response body as JSON
+    const data = JSON.parse(body);
 
-    res.on('end', () => {
-        const { characters } = JSON.parse(data)
-        characters.forEach((characterUrl) => {
-            get(characterUrl, (charRes) => {
-                let charData = ''
+    // Iterate over each character URL in the movie's character list
+    data.characters.forEach((characterUrl) => {
+        // Send a GET request to each character URL
+        request(characterUrl, (error, response, body) => {
+            if (error) {
+                console.error(error);
+                return;
+            }
 
-                charRes.on('data', (chunk) => {
-                    charData += chunk
-                })
-
-                charRes.on('end', () => {
-                    const { name } = JSON.parse(charData)
-                    console.log(name)
-                })
-            }).on('error', (err) => {
-                console.error(`Error fetching character: ${err.message}`)
-            })
-        })
-    })
-}).on('error', (err) => {
-    console.error(`Error fetching movie data: ${err.message}`)
-})
+            // Parse the character data and print the character name
+            const character = JSON.parse(body);
+            console.log(character.name);
+        });
+    });
+});
