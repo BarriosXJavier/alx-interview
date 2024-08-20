@@ -1,31 +1,25 @@
-#!/usr/bin/env python3
-from typing import List
-""" The coin change problem"""
+#!/usr/bin/python3
+"""The coin change problem.
+"""
 
 
-def makeChange(coins: List[int], total: int) -> int:
-    """
-    Calculate the minimum number of coins needed to make a given total.
-
-    Args:
-        coins (list of int): The denominations of the coins available.
-        total (int): The total amount of money to make change for.
-
-    Returns:
-        int: The minimum number of coins needed to make the total, or -1 if it
-        is not possible.
+def makeChange(coins, total):
+    """Determines the fewest number of coins needed to meet a given
+    amount total when given a pile of coins of different values.
     """
     if total <= 0:
         return 0
-
-    # Initialize dp array with total + 1 (representing infinity)
-    dp = [total + 1] * (total + 1)
-    dp[0] = 0
-
-    # Build the dp array
-    for i in range(1, total + 1):
-        for coin in coins:
-            if coin <= i:
-                dp[i] = min(dp[i], dp[i - coin] + 1)
-
-    return dp[total] if dp[total] <= total else -1
+    rem = total
+    coins_count = 0
+    coin_index = 0
+    sorted_coins = sorted(coins, reverse=True)
+    n = len(coins)
+    while rem > 0:
+        if coin_index >= n:
+            return -1
+        if rem - sorted_coins[coin_index] >= 0:
+            rem -= sorted_coins[coin_index]
+            coins_count += 1
+        else:
+            coin_index += 1
+    return coins_count
