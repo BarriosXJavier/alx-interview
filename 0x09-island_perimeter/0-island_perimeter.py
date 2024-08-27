@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
 This module contains a function to calculate the perimeter of an island
 in a grid of water and land cells.
@@ -7,33 +7,22 @@ in a grid of water and land cells.
 
 def island_perimeter(grid):
     """
-    Calculate the perimeter of an island in a grid.
-
-    The grid is a list of lists where 0 represents water and 1 represents land.
-    The island is surrounded by water and there are no lakes within the island.
-
-    Args:
-        grid (list of list of int): A list of lists representing the grid.
-
-    Returns:
-        int: The perimeter of the island in the grid.
+    Calculate the perimeter of an island in a grid of water and land cells with no lakes.
     """
-    if not grid:
-        return 0
-
     perimeter = 0
-    rows, cols = len(grid), len(grid[0])
-
-    for i in range(rows):
-        for j in range(cols):
-            if grid[i][j] == 1:
-                # Each land cell initially adds 4 to the perimeter
-                perimeter += 4
-                # Subtract 2 for each adjacent land cell above
-                if i > 0 and grid[i - 1][j] == 1:
-                    perimeter -= 2
-                # Subtract 2 for each adjacent land cell to the left
-                if j > 0 and grid[i][j - 1] == 1:
-                    perimeter -= 2
-
+    if type(grid) != list:
+        return 0
+    num_rows = len(grid)
+    for row_index, row in enumerate(grid):
+        num_cols = len(row)
+        for col_index, cell in enumerate(row):
+            if cell == 0:
+                continue
+            edges = (
+                row_index == 0 or (len(grid[row_index - 1]) > col_index and grid[row_index - 1][col_index] == 0),
+                col_index == num_cols - 1 or (num_cols > col_index + 1 and row[col_index + 1] == 0),
+                row_index == num_rows - 1 or (len(grid[row_index + 1]) > col_index and grid[row_index + 1][col_index] == 0),
+                col_index == 0 or row[col_index - 1] == 0,
+            )
+            perimeter += sum(edges)
     return perimeter
