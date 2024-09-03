@@ -1,62 +1,75 @@
 #!/usr/bin/env python3
-
-""" Prime Game Algo in Python
-    Sieve of Eratosthenes in Python:
-"""
-
-
-def is_prime(n):
-    """Checks if a number n is a prime number."""
-    for i in range(2, int(n ** 0.5) + 1):
-        if n % i == 0:
-            return False
-    return True
-
-
-def calculate_primes(n, primes):
-    """Calculate all primes up to and including n."""
-    top_prime = primes[-1]
-    if n > top_prime:
-        for i in range(top_prime + 1, n + 1):
-            if is_prime(i):
-                primes.append(i)
-            else:
-                primes.append(0)
-
+""" The prime game. """
 
 def isWinner(x, nums):
     """
     Determine the winner of the prime game.
-
+    
     Args:
         x (int): The number of rounds.
-        nums (list[int]): A list of n values representing the range
+        nums (list[int]): A list of n values representing the range 
                           of numbers in each round.
-
+    
     Returns:
-        str: The name of the player that won the most rounds, or
+        str: The name of the player that won the most rounds, or 
              None if the game is a draw.
     """
-    players_wins = {"Maria": 0, "Ben": 0}
 
-    primes = [0, 0, 2]
-    calculate_primes(max(nums), primes)
+    def sieve_of_eratosthenes(n):
+        """
+        Generates a list indicating prime numbers up to n using 
+        the Sieve of Eratosthenes.
+        
+        Args:
+            n (int): The upper limit to generate primes.
+        
+        Returns:
+            list[bool]: A boolean list where True indicates a prime 
+                        number at that index.
+        """
+        primes = [True] * (n + 1)
+        primes[0] = primes[1] = False
+        for i in range(2, int(n ** 0.5) + 1):
+            if primes[i]:
+                for j in range(i * i, n + 1, i):
+                    primes[j] = False
+        return primes
 
-    for round in range(x):
-        sum_options = sum((i != 0 and i <= nums[round])
-                          for i in primes[:nums[round] + 1])
+    def play_game(n):
+        """
+        Simulates the game for a given number n and determines the 
+        winner.
+        
+        Args:
+            n (int): The upper limit of the game.
+        
+        Returns:
+            str: The winner of the game ("Maria" or "Ben").
+        """
+        primes = sieve_of_eratosthenes(n)
+        turn = 0  # 0 for Maria, 1 for Ben
+        for i in range(2, n + 1):
+            if primes[i]:
+                turn += 1
+                for j in range(i, n + 1, i):
+                    primes[j] = False
+        return "Maria" if turn % 2 == 1 else "Ben"
 
-        if sum_options % 2:
-            winner = "Maria"
+    # Initialize win counters for Maria and Ben
+    maria_wins = ben_wins = 0
+
+    # Simulate each game round and determine the winner
+    for n in nums:
+        winner = play_game(n)
+        if winner == "Maria":
+            maria_wins += 1
         else:
-            winner = "Ben"
+            ben_wins += 1
 
-        if winner:
-            players_wins[winner] += 1
-
-    if players_wins["Maria"] > players_wins["Ben"]:
+    # Determine the overall winner based on round results
+    if maria_wins > ben_wins:
         return "Maria"
-    elif players_wins["Ben"] > players_wins["Maria"]:
+    elif ben_wins > maria_wins:
         return "Ben"
-
-    return None
+    else:
+        return None
