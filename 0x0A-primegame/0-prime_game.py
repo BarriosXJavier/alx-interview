@@ -1,92 +1,62 @@
 #!/usr/bin/env python3
 
-def isWinner(x, nums):
-    """
-    Determines the winner of a game of prime number picking.
-
-    The game is played in rounds, with each round consisting
-    of the following steps:
-    1. Find the maximum number in the given list of numbers
-       (`nums`).
-    2. Generate a list of prime numbers up to and including the
-       maximum number.
-    3. Simulate each round of the game:
-        a. Choose the smallest prime number from the list of
-           primes.
-        b. Remove all multiples of the chosen prime number from
-           the list of primes.
-        c. Switch the turn (i.e., if it was Maria's turn, now
-           it's Ben's turn, and vice versa).
-    4. Determine the overall winner based on the number of
-       rounds won by each player.
-
-    Args:
-        x (int): The number of rounds to play.
-        nums (list[int]): A list of numbers to generate the prime
-                          numbers from.
-
-    Returns:
-        str: The name of the player who wins the most rounds, or
-             None if the game is a draw.
-    """
-
-    # Step 1: Find the maximum number in nums
-    # to compute primes up to that number
-    max_num = max(nums)
-
-    # Step 2: Generate a list of prime numbers
-    # up to and including the maximum number
-    primes = [i for i in range(2, max_num + 1) if is_prime(i)]
-
-    # Step 3: Initialize win counters
-    maria_wins = 0
-    ben_wins = 0
-
-    # Step 4: Simulate each game
-    for n in nums:
-        primes_in_game = [p for p in primes if p <= n]
-        turn = 0  # Maria starts first, represented by 0, Ben is 1
-
-        while primes_in_game:
-            current_prime = primes_in_game.pop(0)  # Choose the smallest prime
-            # Remove multiples of current_prime from primes_in_game
-            primes_in_game = [
-                p for p in primes_in_game if p % current_prime != 0
-            ]
-            turn = 1 - turn  # Switch turn
-
-        if turn == 1:
-            # If it's Ben's turn but no moves left, Maria wins
-            maria_wins += 1
-        else:
-            # If it's Maria's turn but no moves left, Ben wins
-            ben_wins += 1
-
-    # Step 5: Determine the overall winner
-    if maria_wins > ben_wins:
-        return "Maria"
-    elif ben_wins > maria_wins:
-        return "Ben"
-    else:
-        return None
+""" Prime Game Algo in Python
+    Sieve of Eratosthenes in Python:
+"""
 
 
 def is_prime(n):
-    """
-    Checks if a number is prime.
-
-    Args:
-        n (int): The number to check.
-
-    Returns:
-        bool: True if the number is prime, False otherwise.
-    """
-
-    if n < 2:
-        return False
-
+    """Checks if a number n is a prime number."""
     for i in range(2, int(n ** 0.5) + 1):
         if n % i == 0:
             return False
-
     return True
+
+
+def calculate_primes(n, primes):
+    """Calculate all primes up to and including n."""
+    top_prime = primes[-1]
+    if n > top_prime:
+        for i in range(top_prime + 1, n + 1):
+            if is_prime(i):
+                primes.append(i)
+            else:
+                primes.append(0)
+
+
+def isWinner(x, nums):
+    """
+    Determine the winner of the prime game.
+
+    Args:
+        x (int): The number of rounds.
+        nums (list[int]): A list of n values representing the range
+                          of numbers in each round.
+
+    Returns:
+        str: The name of the player that won the most rounds, or
+             None if the game is a draw.
+    """
+    players_wins = {"Maria": 0, "Ben": 0}
+
+    primes = [0, 0, 2]
+    calculate_primes(max(nums), primes)
+
+    for round in range(x):
+        sum_options = sum((i != 0 and i <= nums[round])
+                          for i in primes[:nums[round] + 1])
+
+        if sum_options % 2:
+            winner = "Maria"
+        else:
+            winner = "Ben"
+
+        if winner:
+            players_wins[winner] += 1
+
+    if players_wins["Maria"] > players_wins["Ben"]:
+        return "Maria"
+    elif players_wins["Ben"] > players_wins["Maria"]:
+        return "Ben"
+
+    return None
