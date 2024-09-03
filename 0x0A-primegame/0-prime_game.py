@@ -1,3 +1,7 @@
+#!/usr/bin/python3
+"""Determine the winner of the prime game."""
+
+
 def is_prime(n):
     """Check if a number is prime."""
     if n < 2:
